@@ -7,7 +7,7 @@ A quick-and-dirty script to trim and 2-up PDF files onto US Letter paper in land
 `pdftrim2up` is still a work in progress and __not__ on PyPI. You can install it like this:
 
 ```bash
-pip install https://github.com/nelsonuhan/pdftrim2up 
+pip install https://github.com/nelsonuhan/pdftrim2up/zipball/master 
 ```
 
 ## Compatibility
