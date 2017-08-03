@@ -1,7 +1,11 @@
 import setuptools
 import pypandoc
 
-long_description = pypandoc.convert('README.md', 'rst')
+try:
+    import pypandoc
+    long_description = pypandoc.convert('README.md', 'rst')
+except ImportError:
+    long_description = ''
 
 setuptools.setup(
     name='pdftrim2up',
