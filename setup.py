@@ -1,5 +1,4 @@
 import setuptools
-import pypandoc
 
 try:
     import pypandoc
