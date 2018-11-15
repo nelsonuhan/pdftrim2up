@@ -50,9 +50,10 @@ def main():
     ODD_BOTTOM = ODD_ORIGINAL_HEIGHT - (ODD_TOP + ODD_HEIGHT)
     EVEN_BOTTOM = EVEN_ORIGINAL_HEIGHT - (EVEN_TOP + EVEN_HEIGHT)
 
-    # Regular letter paper dimensions
-    OUT_WIDTH = 11.5 * 72 / 2
-    OUT_HEIGHT = 8.5 * 72
+    # Output dimensions
+    OUT_WIDTH = int(1.03 * (ODD_WIDTH + EVEN_WIDTH))
+    OUT_MARGIN = OUT_WIDTH - ODD_WIDTH - EVEN_WIDTH
+    OUT_HEIGHT = max(ODD_HEIGHT, EVEN_HEIGHT)
 
     # Open file
     in_stream = open(IN, 'rb')
@@ -87,55 +88,35 @@ def main():
     # Combine two pages into 1
     out_pdf = PdfFileWriter()
 
-    def scale_page(page, side):
-        '''
-        Get scaling factors
-        '''
-        width = float(page.mediaBox.upperRight[0])
-        height = float(page.mediaBox.upperRight[1])
-        scale = min(OUT_WIDTH / width, OUT_HEIGHT / height) * 0.95
-        scaled_width = width * scale
-        scaled_height = height * scale
-        tx = (OUT_WIDTH - scaled_width) / 2
-        ty = (OUT_HEIGHT - scaled_height) / 2
-
-        if side == 'right':
-            tx += OUT_WIDTH
-
-        return scale, tx, ty
-
     # First page
     print("\nCombining.", end="", flush=True)
     rhs = trim_pdf.getPage(0)
 
-    page = out_pdf.insertBlankPage(width=OUT_WIDTH * 2, height=OUT_HEIGHT,
+    page = out_pdf.insertBlankPage(width=OUT_WIDTH, height=OUT_HEIGHT,
                                    index=out_pdf.getNumPages())
     page.cropBox = page.mediaBox
     page.trimBox = page.mediaBox
 
-    scale, tx, ty = scale_page(rhs, side='right')
-    page.mergeScaledTranslatedPage(rhs, scale=scale, tx=tx, ty=ty)
+    page.mergeTranslatedPage(rhs, tx=ODD_WIDTH + OUT_MARGIN, ty=0)
 
     # Second page onwards
     for i in range(1, trim_pdf.getNumPages(), 2):
         print("..", end="", flush=True)
 
-        page = out_pdf.insertBlankPage(width=OUT_WIDTH * 2, height=OUT_HEIGHT,
+        page = out_pdf.insertBlankPage(width=OUT_WIDTH, height=OUT_HEIGHT,
                                        index=out_pdf.getNumPages())
         page.cropBox = page.mediaBox
         page.trimBox = page.mediaBox
 
         lhs = trim_pdf.getPage(i)
-        scale, tx, ty = scale_page(lhs, side='left')
-        page.mergeScaledTranslatedPage(lhs, scale=scale, tx=tx, ty=ty)
+        page.mergeTranslatedPage(lhs, tx=0, ty=0)
 
         try:
             rhs = trim_pdf.getPage(i + 1)
         except IndexError:
             pass
         else:
-            scale, tx, ty = scale_page(rhs, side='right')
-            page.mergeScaledTranslatedPage(rhs, scale=scale, tx=tx, ty=ty)
+            page.mergeTranslatedPage(rhs, tx=ODD_WIDTH + OUT_MARGIN, ty=0)
 
     # Create output filename
     in_abspath = os.path.abspath(IN)
